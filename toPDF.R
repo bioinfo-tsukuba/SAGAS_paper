@@ -1,19 +1,18 @@
-
-
-
 library(tidyverse)
 library(ggtext)
+path <- commandArgs(trailingOnly=TRUE)[1]#Input result path
 
 pt_inch <- function(x) {
   return(x * 0.0138888889)
 }
-path <- '/Users/yuyaarai/Documents/LocalSAGAS/20220516/SALAS_2/RESULTS'
 times <- list.files(path, pattern="test_time", recursive=T, full.names=T)
 deps <- list.files(path, pattern="test_dep", recursive=T, full.names=T)
 machines <- list.files(path, pattern="test_machines",recursive=T, full.names=T)
 pdfoutputs <- list.files(path, pattern="test_machines",recursive=T, full.names=T)
 svgoutputs <- pdfoutputs
-　
+
+
+
 
 sort(times)
 sort(deps)
@@ -74,6 +73,7 @@ for (i in tes_from:tes_n) {
   path_machine <-machines[i]
   path_output_pdf <-  pdfoutputs[i]
   path_output_svg <-  svgoutputs[i]
+  dir.create(gsub("/pdfs/.*", "/pdfs", path_output_pdf), showWarnings = FALSE)
   # Read data
   df1 <- read_tsv(path_scheduling_result)
   df_dep <- read_tsv(path_dependency)
