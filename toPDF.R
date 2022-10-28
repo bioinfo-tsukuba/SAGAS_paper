@@ -338,6 +338,8 @@ for (i in tes_from:tes_n) {
   ggsave(filename = path_output_pdf, plot = g, width = W, height = H)
   ggsave(filename = path_output_svg, plot = g, width = W, height = H)
   
+  dir.create(gsub("/scheduling/.*/test_svg.*", paste0("/scheduling/P"), path_output_svg), showWarnings = FALSE)
+  dir.create(gsub("/scheduling/.*/test_svg.*", paste0("/scheduling/P/",Figpath), path_output_svg), showWarnings = FALSE)
   
   if(grepl(pattern = "N5", times[i])){
     ggsave(filename = gsub("/scheduling/.*/test_svg", paste0("/scheduling/P/",Figpath ,"/test_svg"), path_output_svg), plot = g, width = W, height = H)
