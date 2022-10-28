@@ -1,0 +1,6 @@
+DATE(GMT): YYYY/ MM/ DD/ hh/ mm/ ss	ID	Loop_number	Set_number	Machine1	Machine2	Machine3	Machine4	Machine5	Used_Machine1	Used_Machine2	Used_Machine3	Used_Machine4	Used_Machine5	Result_Time	Annealing_time_msec	Scheduling_time_sec	Scheduling_time_msec	Best_step	Last_step	Result_statas
+2022_05_18_13_05_02	Gu2016_N1_1500msec_SM	0	0	1	1	1	1	2	1	1	1	1	2	90	1500	1	1519	66811	70384	SA
+2022_05_18_13_05_04	Gu2016_N1_1500msec_SM	1	0	1	1	1	1	2	1	1	1	1	2	90	1500	2	1515	52806	55947	SA
+2022_05_18_13_05_05	Gu2016_N1_1500msec_SM	2	0	1	1	1	1	2	1	1	1	1	2	87	1500	1	1517	68393	71767	SA
+2022_05_18_13_05_07	Gu2016_N1_1500msec_SM	3	0	1	1	1	1	2	1	1	1	1	2	87	1500	2	1521	65914	67733	SA
+2022_05_18_13_05_09	Gu2016_N1_1500msec_SM	4	0	1	1	1	1	2	1	1	1	1	2	108086	1500	2	1521	67661	68572	FAILED

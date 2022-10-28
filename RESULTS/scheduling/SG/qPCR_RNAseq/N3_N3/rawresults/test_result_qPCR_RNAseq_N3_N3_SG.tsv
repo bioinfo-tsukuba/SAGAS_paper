@@ -1,0 +1,6 @@
+DATE(GMT): YYYY/ MM/ DD/ hh/ mm/ ss	ID	Loop_number	Set_number	Machine1	Machine2	Machine3	Machine4	Machine5	Machine6	Machine7	Machine8	Machine9	Used_Machine1	Used_Machine2	Used_Machine3	Used_Machine4	Used_Machine5	Used_Machine6	Used_Machine7	Used_Machine8	Used_Machine9	Result_Time	Annealing_time_msec	Scheduling_time_sec	Scheduling_time_msec	Best_step	Last_step	Result_statas
+2022_05_18_12_36_48	qPCR_RNAseq_N3_N3_SG	0	0	2	2	2	2	1	1	1	1	2	2	2	2	2	1	1	1	1	1	812	180000	204	203490	1100743	1101200	SA
+2022_05_18_12_40_01	qPCR_RNAseq_N3_N3_SG	1	0	2	2	2	2	1	1	1	1	2	2	2	2	2	1	1	1	1	2	873	180000	193	193159	1094638	1095547	SA
+2022_05_18_12_43_20	qPCR_RNAseq_N3_N3_SG	2	0	2	2	2	2	1	1	1	1	2	2	2	2	2	1	1	1	1	1	861	180000	199	199158	1066415	1066926	SA
+2022_05_18_12_46_51	qPCR_RNAseq_N3_N3_SG	3	0	2	2	2	2	1	1	1	1	2	2	2	2	2	1	1	1	1	1	893	180000	211	210559	1061250	1062576	SA
+2022_05_18_12_50_01	qPCR_RNAseq_N3_N3_SG	4	0	2	2	2	2	1	1	1	1	2	2	2	2	2	1	1	1	1	2	833	180000	190	190191	1347770	1350647	SA

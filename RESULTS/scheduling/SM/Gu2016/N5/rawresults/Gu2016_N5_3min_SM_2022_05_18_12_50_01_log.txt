@@ -1,0 +1,30 @@
+Log 
+DATE(GMT): YYYY_MM_DD_hh_mm_ss
+DATE(GMT): 2022_05_18_12_50_01
+Experimental_ID: Gu2016_N5_3min_SM
+ADD_machine1: 0
+ADD_machine2: 0
+ADD_machine3: 0
+ADD_machine4: 0
+ADD_machine5: 0
+Adjust_strictly: TRUE
+Align_start_time: TRUE
+Annealing_time_(msec): 180000
+End_the_middle: FALSE
+From_greedy_searching: FALSE
+Loop_end_point: 0
+Loop_start_from: 0
+Loops: 5
+Naive: true
+Output_directory: /Users/yuyaarai/Documents/LocalSAGAS/20220516/SALAS_2/RESULTS/scheduling/SM/Gu2016/N5/rawresults
+Set_end_point: 0
+Set_start_from: -1
+Source_directory: /Users/yuyaarai/Documents/LocalSAGAS/20220516/SALAS_2/DATA/Gu2016/N5
+Start_from_the_middle: FALSE
+With_greedy_searching: FALSE
+User name: YuyaArai
+
+Comments
+Localsimulation
+DATE(GMT): 2022_05_18_12_50_01
+

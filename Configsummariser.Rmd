@@ -1,0 +1,612 @@
+---
+title: "Summarise"
+output:
+  html_document: default
+  pdf_document: default
+date: '2022-05-19'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+dir_path_1 = "/Users/yuyaarai/Desktop/Voltical/rm_test"
+dir_path_2 = "/Users/yuyaarai/Desktop/Voltical/rm_test/rm_test_1"
+dir_path_3 = "/Users/yuyaarai/Desktop/Voltical/rm_test/rm_test_1/rm_test_1_1"
+
+#test_1
+dir.create(dir_path_1)
+unlink(dir_path_1, recursive = T)
+
+#test_2
+dir.create(dir_path_1)
+file.create(paste(dir_path_1, "test.tsv", sep = "/"))
+unlink("/Users/yuyaarai/Desktop/Voltical/rm_test", recursive = T)
+
+#test_3
+dir.create(dir_path_1)
+dir.create(dir_path_2)
+file.create(paste(dir_path_1, "test.tsv", sep = "/"))
+unlink("/Users/yuyaarai/Desktop/Voltical/rm_test", recursive = T)
+
+#test_4
+dir.create(dir_path_2, recursive=TRUE)
+file.create(paste(dir_path_1, "test.tsv", sep = "/"))
+unlink("/Users/yuyaarai/Desktop/Voltical/rm_test", recursive = T)
+
+
+
+```
+
+
+# Search all paths of test_result
+
+```{r Collect paths}
+library(tidyverse)
+
+library(gridExtra)
+
+pt_inch <- function(x) {
+  return(x * 0.0138888889)
+}
+
+
+path <- c("/Users/yuyaarai/Documents/LocalSAGAS/N10parallel/res_sum/test_result_for_local_RNAN10_from_min_N10parallel.tsv",
+          "/Users/yuyaarai/Documents/LocalSAGAS/N10parallel_controls/Naive/res_sum/test_result_for_local_RNAN10_from_min_Naive.tsv",
+          "/Users/yuyaarai/Documents/LocalSAGAS/N10parallel_controls/Greedyonly/res_sum/test_result_for_local_RNAN10_from_min_Greedyonly.tsv"
+)
+
+
+df <- read_tsv(path[1])
+for (i in 2:3){
+  
+  F <- read_tsv(path[i])
+  rbind(df, F)
+  
+}
+
+head(df)
+
+dir_mother = "/Users/yuyaarai/Documents/LocalSAGAS/TEST/configsum"
+
+
+```
+
+Then, I group it by the configuration of machines that are used and extract the minimum of each group.
+
+```{r Results_allconfigs}
+
+
+save_path = paste(dir_mother, "monochromatic", sep = "/")
+dir.create(save_path, recursive = TRUE)
+for (i in 1:3){
+  
+  
+df <- read_tsv(path[i])
+
+ID <- gsub("\\d$", "", df[1, "ID"])
+Title <- gsub("N10", " N10", ID)
+Title <- gsub("_", " ", Title)
+Title <- gsub(".*RNA","RNAseq", Title)
+Title <- gsub("from min","", Title)
+Title <- gsub("naive","SA", Title)
+
+df_G <- df %>%
+  group_by(Used_Machine1, Used_Machine2, Used_Machine3, Used_Machine4) %>%
+  slice(which.min(Result_Time))
+
+#write.table(df_G,"/Users/yuyaarai/Desktop/IIBMP/config/tes.tsv",sep = "\t",row.names=FALSE,col.names=TRUE)
+
+df_S <- ungroup(df_G)
+
+df_S <- df_S[order(df_S$Result_Time), ]
+
+df_S <- df_S %>%
+  mutate(Machine_Condition = paste(Used_Machine1, Used_Machine2, Used_Machine3, Used_Machine4, sep = "-"))
+
+
+#write.table(df_S,paste0("/Users/yuyaarai/Desktop/IIBMP/config/tes_ALL_",ID , "_sorted.tsv"),sep = "\t",row.names=FALSE,col.names=TRUE)
+
+
+
+g <- ggplot(df_S, aes(x=reorder(Machine_Condition, -Result_Time), y = Result_Time)) + 
+  geom_point(size = 1) +
+  labs(title = Title, x = "Machine configuration",  y ="Execution time (min)") +
+  theme_classic()+
+  theme(axis.text.x = element_text(
+    hjust = 1, vjust = 0.5, 
+    angle = 90, size = 4, 
+    colour = "black"
+  ),
+  axis.text.y = element_text(
+    size = 8,
+    colour = "black"
+    
+  ),
+  axis.title = element_text(
+    size = 10, 
+    colour = "black"
+  ),
+  title = element_text(
+    
+    size = 12, 
+    colour = "black"
+    
+  ),
+panel.border = element_rect(color = "black",
+                            fill = NA,
+                            size = 0.5), 
+  panel.grid.major.y = element_line(colour = "grey"),
+    axis.ticks = element_line(colour = "black")
+)+
+  scale_y_continuous(limits=c(0,6500),expand=c(0,0))
+  
+  
+plot(g)
+
+
+ggsave(filename = paste0(save_path, "/tes_total_",ID , "_.svg"), plot = g, width = pt_inch(510), height = pt_inch(190))
+ggsave(filename = paste0(save_path, "/tes_total_",ID , "_.jpg"), plot = g, width = pt_inch(510), height = pt_inch(190))
+ggsave(filename = paste0(save_path, "/tes_total_",ID , "_.pdf"), plot = g, width = pt_inch(510), height = pt_inch(190))
+
+
+}
+
+
+```
+
+```{r Results_allconfigs_colour}
+
+
+save_path = paste(dir_mother, "colour", sep = "/")
+dir.create(save_path, recursive = TRUE)
+
+for (i in 1:3){
+  
+  
+df <- read_tsv(path[i])
+
+ID <- gsub("\\d$", "", df[1, "ID"])
+Title <- gsub("N10", " N10", ID)
+Title <- gsub("_", " ", Title)
+Title <- gsub(".*RNA","RNAseq", Title)
+Title <- gsub("from min","", Title)
+Title <- gsub("naive","SA", Title)
+
+df_G <- df %>%
+  group_by(Used_Machine1, Used_Machine2, Used_Machine3, Used_Machine4) %>%
+  slice(which.min(Result_Time))
+
+#write.table(df_G,"/Users/yuyaarai/Desktop/IIBMP/config/tes.tsv",sep = "\t",row.names=FALSE,col.names=TRUE)
+
+df_S <- ungroup(df_G)
+
+df_S <- df_S[order(df_S$Result_Time), ]
+
+df_S <- df_S %>%
+  mutate(Machine_Condition = paste(Used_Machine1, Used_Machine2, Used_Machine3, Used_Machine4, sep = "-"))
+
+
+#write.table(df_S,paste0("/Users/yuyaarai/Desktop/IIBMP/config/tes_ALL_",ID , "_sorted.tsv"),sep = "\t",row.names=FALSE,col.names=TRUE)
+
+
+
+g <- ggplot(df_S, aes(x=reorder(Machine_Condition, -Result_Time), y = Result_Time, colour = Result_statas)) + 
+  geom_point(size = 1) +
+  labs(title = Title, x = "Machine configuration",  y ="Execution time (min)") +
+  theme_classic()+
+  theme(axis.text.x = element_text(
+    hjust = 1, vjust = 0.5, 
+    angle = 90, size = 5, 
+    colour = "black"
+  ),
+  axis.text.y = element_text(
+    size = 8,
+    colour = "black"
+    
+  ),
+  axis.title = element_text(
+    size = 10, 
+    colour = "black"
+  ),
+  title = element_text(
+    
+    size = 12, 
+    colour = "black"
+    
+  ),
+panel.border = element_rect(color = "black",
+                            fill = NA,
+                            size = 0.5), 
+  panel.grid.major.y = element_line(colour = "grey"),
+    axis.ticks = element_line(colour = "black")
+)+
+  scale_y_continuous(limits=c(0,6500),expand=c(0,0))
+  
+  
+plot(g)
+
+
+ggsave(filename = paste0(save_path, "/tes_total_",ID , "_.svg"), plot = g, width = pt_inch(510), height = pt_inch(190))
+ggsave(filename = paste0(save_path, "/tes_total_",ID , "_.jpg"), plot = g, width = pt_inch(510), height = pt_inch(190))
+ggsave(filename = paste0(save_path, "/tes_total_",ID , "_.pdf"), plot = g, width = pt_inch(510), height = pt_inch(190))
+
+
+}
+
+
+```
+
+```{r Results_eachmachines_biolin}
+
+save_path = paste(dir_mother, "biolins", sep = "/")
+dir.create(save_path, recursive = TRUE)
+
+UM <- c("Used_Machine1", "Used_Machine2", "Used_Machine3", "Used_Machine4")
+Ylabs <- c( "Execution time (min)", " ", " ", " ")
+Titles <- c("1 (Maholo)","2 (Transporter)","3 (Tecan)","4 (PCR)")
+UM_N <- c(" ", " "," "," ")
+Title_size = 10
+Title_vjust = 1
+Title_hjust = 0.5
+Title_size = 10
+for (i in 1:3){
+df <- read_tsv(path[i])
+ID <- gsub("\\d$", "", df[1, "ID"])
+print(ID)
+
+biolin_size = .5
+
+df_S <- df[order(df$Result_Time), ]
+
+Upper <- max(select(df_S, Result_Time))
+
+Upper <- round(Upper*1.5)
+
+g1 <- ggplot(df_S, aes(x = as.factor(Used_Machine1),  y = Result_Time) ) + 
+  geom_violin(scale="count", size = biolin_size) + 
+    geom_boxplot(width=.1,fill="white",outer.colour=NA, outlier.shape = NA, coef = 10000)+
+  theme_classic()+
+  theme(axis.text.x = element_text(
+    size = 8, 
+    colour = "black"
+  ),
+  axis.text.y = element_text(
+    size = 8,
+    colour = "black"
+    
+  ),
+  axis.title = element_text(
+    size = 10, 
+    colour = "black"
+  ),
+  title = element_text(
+    
+    hjust = Title_hjust, vjust = Title_vjust, 
+    size = Title_size, 
+    colour = "black"
+    
+  ),
+panel.border = element_rect(color = "black",
+                            fill = NA,
+                            size = 0.5), 
+  panel.grid.major.y = element_line(colour = "grey"),
+    axis.ticks = element_line(colour = "black")
+)+ 
+ labs(title = Titles[1], 
+      x = UM_N[1], y = Ylabs[1]) +
+  scale_y_continuous(limits=c(0,Upper),expand=c(0,0))
+  
+plot(g1)
+
+
+
+
+
+df_S <- df[order(df$Result_Time), ]
+
+Upper <- max(select(df_S, Result_Time))
+
+Upper <- round(Upper*1.5)
+
+g2 <- ggplot(df_S, aes(x = as.factor(Used_Machine2),  y = Result_Time) ) + 
+  geom_violin(scale="count", size = biolin_size) + 
+    geom_boxplot(width=.1,fill="white",outer.colour=NA, outlier.shape = NA, coef = 10000)+
+  theme_classic()+
+  theme(axis.text.x = element_text(
+    size = 8, 
+    colour = "black"
+  ),
+  axis.text.y = element_text(
+    size = 8,
+    colour = "black"
+    
+  ),
+  axis.title = element_text(
+    size = 10, 
+    colour = "black"
+  ),
+  title = element_text(
+    
+    hjust = Title_hjust, vjust = Title_vjust, 
+    size = Title_size, 
+    colour = "black"
+    
+  ),
+panel.border = element_rect(color = "black",
+                            fill = NA,
+                            size = 0.5), 
+  panel.grid.major.y = element_line(colour = "grey"),
+    axis.ticks = element_line(colour = "black")
+)+ 
+ labs(title = Titles[2], 
+      x = UM_N[2], y = Ylabs[2]) +
+  scale_y_continuous(limits=c(0,Upper),expand=c(0,0))
+  
+plot(g2)
+
+
+
+df_S <- df[order(df$Result_Time), ]
+
+Upper <- max(select(df_S, Result_Time))
+
+Upper <- round(Upper*1.5)
+
+g3 <- ggplot(df_S, aes(x = as.factor(Used_Machine3),  y = Result_Time) ) + 
+  geom_violin(scale="count", size = biolin_size) + 
+    geom_boxplot(width=.1,fill="white",outer.colour=NA, outlier.shape = NA, coef = 10000)+
+  theme_classic()+
+  theme(axis.text.x = element_text(
+    size = 8, 
+    colour = "black"
+  ),
+  axis.text.y = element_text(
+    size = 8,
+    colour = "black"
+    
+  ),
+  axis.title = element_text(
+    size = 10, 
+    colour = "black"
+  ),
+  title = element_text(
+    
+    hjust = Title_hjust, vjust = Title_vjust, 
+    size = Title_size, 
+    colour = "black"
+    
+  ),
+panel.border = element_rect(color = "black",
+                            fill = NA,
+                            size = 0.5), 
+  panel.grid.major.y = element_line(colour = "grey"),
+    axis.ticks = element_line(colour = "black")
+)+ 
+ labs(title = Titles[3], 
+      x = UM_N[3], y = Ylabs[3]) +
+  scale_y_continuous(limits=c(0,Upper),expand=c(0,0))
+  
+plot(g3)
+
+
+  #ggsave(filename = paste0("/Users/yuyaarai/Documents/LocalSAGAS/TEST/tes_UM_",Titles[i],"_", UM[j], "biolin.svg"), plot = g,width = pt_inch(192)*Fig_Base, height = pt_inch(71.5)*Fig_Base)
+
+
+
+df_S <- df[order(df$Result_Time), ]
+
+Upper <- max(select(df_S, Result_Time))
+
+Upper <- round(Upper*1.5)
+
+g4 <- ggplot(df_S, aes(x = as.factor(Used_Machine4),  y = Result_Time) ) + 
+  geom_violin(scale="count", size = biolin_size) + 
+    geom_boxplot(width=.1,fill="white",outer.colour=NA, outlier.shape = NA, coef = 10000)+
+  theme_classic()+
+  theme(axis.text.x = element_text(
+    size = 8, 
+    colour = "black"
+  ),
+  axis.text.y = element_text(
+    size = 8,
+    colour = "black"
+    
+  ),
+  axis.title = element_text(
+    size = 10, 
+    colour = "black"
+  ),
+  title = element_text(
+    
+    hjust = Title_hjust, vjust = Title_vjust, 
+    size = Title_size, 
+    colour = "black"
+    
+  ),
+panel.border = element_rect(color = "black",
+                            fill = NA,
+                            size = 0.5), 
+  panel.grid.major.y = element_line(colour = "grey"),
+    axis.ticks = element_line(colour = "black")
+)+ 
+ labs(title = Titles[4], 
+      x = UM_N[4],y = Ylabs[4]) +
+  scale_y_continuous(limits=c(0,Upper),expand=c(0,0))
+  
+plot(g4)
+
+
+
+
+g_1_4 <- grid.arrange(g1, g2, g3, g4,
+             ncol = 4)
+g_2_2 <- grid.arrange(g1, g2, g3, g4,
+             ncol = 2)
+g_4_1 <- grid.arrange(g1, g2, g3, g4,
+             ncol = 1)
+
+  ggsave(filename = paste0(save_path, "/tes_UM_",Titles[i],"_", "biolin_1_4.svg"), plot = g_1_4,width = pt_inch(510), height = pt_inch(250))
+
+  ggsave(filename = paste0(save_path, "/tes_UM_",Titles[i],"_", "biolin_2_2.svg"), plot = g_2_2,width = pt_inch(510), height = pt_inch(250))
+
+  ggsave(filename = paste0(save_path, "/tes_UM_",Titles[i],"_", "biolin_4_1.svg"), plot = g_4_1,width = pt_inch(510), height = pt_inch(250))
+
+
+}
+
+```
+
+
+
+
+```{r Grid}
+
+path_mother = paste(dir_mother, "grid", sep = "/")
+dir.exists(path_mother)
+if(dir.exists(path_mother)){
+  unlink(path_mother, recursive = T)
+}
+
+
+save_path = paste(path_mother, "figs", sep = "/" )
+dir.create(save_path, recursive = TRUE)
+save_path_table = paste(path_mother, "table", sep = "/" )
+dir.create(save_path_table, recursive = TRUE)
+
+Fig_Base <- 2
+
+i <- 1
+x <- 1
+y <- 3
+
+UM <- c("Used_Machine1", "Used_Machine2", "Used_Machine3", "Used_Machine4")
+UM_N <- c("Number of Machine 1", "Number of Machine 2","Number of Machine 3","Number of Machine 4")
+for (i in 1:3){
+df <- read_tsv(path[i])
+ID <- gsub("\\d$", "", df[1, "ID"])
+print(ID)
+
+for (x in 1:4){
+for (y in 1:4){
+  if(x==y){next}
+  
+
+df_G <- df %>%
+  group_by_at(c(UM[x], UM[y])) %>%
+  slice(which.min(Result_Time))
+
+df_S <- ungroup(df_G)
+
+df_S <- df_S[order(df_S$Result_Time), ]
+
+df_S <- df_S[rowSums(is.na(df_S)) != ncol(df_S),]
+
+Upper <- max(select(df_S, Result_Time))
+
+Upper <- round(Upper*1.1)
+
+df_S <- select(df_S, "Execution time (min)" = Result_Time, dplyr::everything())
+
+
+
+write.table(df_S,paste0(save_path_table, "/GRID_",UM[x],"_",UM[y],"_",ID ,  "_sorted.tsv"),sep = "\t",row.names=FALSE,col.names=TRUE)
+
+g <- ggplot(df_S, aes_string(x = as.name(UM[x]),  y = as.name(UM[y]), size = as.name( "Execution time (min)"))) + 
+  geom_point(shape=21, colour = "black", fill = "white" ) + 
+ labs(x = UM_N[x], y = UM_N[y]) +
+  scale_size_area(max_size = 6) +
+  geom_text(aes_string(
+    y = as.name(UM[y]), label = as.name( "Execution time (min)"),
+  ),
+  vjust = 1.7,
+  colour = "black",
+  size = 4
+  )+
+  theme_classic()+
+  theme(axis.text.x = element_text(
+    size = 8, 
+    colour = "black"
+  ),
+  axis.text.y = element_text(
+    size = 8,
+    colour = "black"
+    
+  ),
+  axis.title = element_text(
+    size = 10, 
+    colour = "black"
+  ),
+  title = element_text(
+    
+    size = 12, 
+    colour = "black"
+    
+  ),
+panel.border = element_rect(color = "black",
+                            fill = NA,
+                            size = 0.5), 
+  panel.grid.major = element_line(colour = "grey"),
+          legend.key.height= unit(0.01, 'inch'),
+          legend.key.width= unit(0.1, 'inch'),
+          legend.text = element_text(size = 6),
+          legend.title = element_text(color="black", size = 6)
+)+
+  scale_y_continuous(limits=c(0.6,4.2),expand=c(0,0))+
+  scale_x_continuous(limits=c(0.6,4.4),expand=c(0,0))
+  
+plot(g)
+
+
+  ggsave(filename = paste0(save_path, "/GRID_UM_",ID,"_", UM[x],"_", UM[y], ".svg"), plot = g, width = pt_inch(260), height = pt_inch(195))
+}}
+  
+}
+
+```
+
+```{r Simulation time summariser}
+
+
+library(tidyverse)
+path <- "/Users/yuyaarai/Documents/LocalSAGAS/N10parallel/Results"
+results <- list.files(path, pattern = "test_result.*tsv", recursive = T, full.names = T)
+
+print(results)
+
+df <- read_tsv(results[1])
+ID_t <- gsub(".*/", "", results[1])
+ID_t <- gsub("\\.tsv", "", ID_t)
+print(ID_t)
+df <- mutate(df, ID_t = ID_t)
+
+
+for (i in seq(length(results) - 1)){
+  df_t <- read_tsv(results[i + 1])
+  
+  ID_t <- gsub(".*/", "", results[i+1])
+  ID_t <- gsub("\\.tsv", "", ID_t)
+  df_t <- mutate(df_t, ID_t = ID_t)
+  
+  df <- rbind(df, df_t)
+}
+
+
+df_G <- df %>%
+group_by(ID_t) %>%
+summarise_each(funs(sum, max, median, min, mean) , Scheduling_time_sec)
+
+print(max(df_G$sum))
+
+print(df_G)
+
+write.table(df_G,"/Users/yuyaarai/Documents/LocalSAGAS/TEST/Scheduling_time_sec.tsv",sep = "\t",row.names=FALSE,col.names=TRUE)
+
+
+
+
+
+```
+

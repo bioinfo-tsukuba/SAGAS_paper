@@ -1,0 +1,6 @@
+DATE(GMT): YYYY/ MM/ DD/ hh/ mm/ ss	ID	Loop_number	Set_number	Machine1	Machine2	Machine3	Machine4	Machine5	Machine6	Used_Machine1	Used_Machine2	Used_Machine3	Used_Machine4	Used_Machine5	Used_Machine6	Result_Time	Annealing_time_msec	Scheduling_time_sec	Scheduling_time_msec	Best_step	Last_step	Result_statas
+2022_05_18_12_36_34	qPCR_N10_3min_SM	0	0	1	1	1	1	1	2	1	1	1	1	1	2	447	180000	190	190250	934059	938466	SA
+2022_05_18_12_39_43	qPCR_N10_3min_SM	1	0	1	1	1	1	1	2	1	1	1	1	1	2	429	180000	188	188368	943316	943936	SA
+2022_05_18_12_42_50	qPCR_N10_3min_SM	2	0	1	1	1	1	1	2	1	1	1	1	1	2	455	180000	187	186754	906679	907120	SA
+2022_05_18_12_45_57	qPCR_N10_3min_SM	3	0	1	1	1	1	1	2	1	1	1	1	1	2	414	180000	187	187608	899156	904630	SA
+2022_05_18_12_49_02	qPCR_N10_3min_SM	4	0	1	1	1	1	1	2	1	1	1	1	1	2	389	180000	185	185153	990494	991182	SA

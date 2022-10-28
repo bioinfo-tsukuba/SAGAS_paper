@@ -1,0 +1,815 @@
+---
+title: "Summarise"
+output:
+  html_document: default
+  pdf_document: default
+date: '2022-05-19'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Search all paths of test_result
+
+```{r Collect paths}
+
+
+library(tidyverse)
+
+library(ggbeeswarm)
+
+
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+ return(data_sum)
+}
+
+pt_inch <- function(x) {
+  return(x * 0.0138888889)
+}
+
+
+make_dir <- function(x){
+  
+  if(!dir.exists(x)){
+    dir.create(x)
+  }
+  
+}
+
+del_make_file <- function(x){
+  
+  if(file.exists(x)){
+    file.remove(x)
+  }
+  file.create(x)
+  
+}
+
+path <- "/Users/yuyaarai/Documents/LocalSAGAS/20220516/SALAS_2/RESULTS/scheduling"
+results <- list.files(path, pattern = "test_result.*tsv", recursive = T, full.names = T)
+
+
+results_GR <- results[grep(pattern = "/GR/", results)]
+results_SA <- results[grep(pattern = "/SA/", results)]
+results_SG <- results[grep(pattern = "/SG/", results)]
+results_SM <- results[grep(pattern = "/SM/", results)]
+sort(results_GR)
+sort(results_SA)
+sort(results_SG)
+sort(results_SM)
+print(results_GR)
+print(results_SA)
+print(results_SG)
+print(results_SM)
+
+print(results)
+
+```
+
+Then, I combine the files in the same configuration with different scheduling algorithms.
+
+```{r Results}
+Figpath = "F"
+
+Text_Base <- 4
+Fig_Base <- 3
+Output_directory <-""
+results_GR
+
+GR <- read_tsv(results_GR[1])
+SA <- read_tsv(results_SA[1])
+SG <- read_tsv(results_SG[1])
+SM <- read_tsv(results_SM[1])
+bound <- rbind(GR, SA, SG, SM)
+
+Allbound <- bound
+
+for (i in seq(length(results_GR))){
+
+  
+  GR <- read_tsv(results_GR[i])
+  SA <- read_tsv(results_SA[i])
+  SG <- read_tsv(results_SG[i])
+  SM <- read_tsv(results_SM[i])
+  bound <- rbind(GR, SA, SG, SM)
+  
+  if(i != 1){
+    Allbound <- bind_rows(Allbound, bound)
+  }
+  new <- filter(bound, Result_statas != "FAILED")
+  Upper <- max(select(new, Result_Time))
+  Upper <- round(Upper*1.1)
+  
+  Title <- substr(GR[1, "ID"],1, str_length(GR[1, "ID"]) - 3)
+  Title <- gsub("_", " ", Title)
+  Title <- gsub("min", " min", Title)
+  for (j in seq(length(new$ID))){
+    #print(new[j, "ID"])
+    new[j, "ID"] <- gsub(".*_", "", new[j, "ID"])
+    #print(new[j, "ID"])
+  }
+  
+  for (j in seq(length(new$ID))){
+    if(new[j, "ID"] == "SA"){
+      new[j, "ID"] <- "SA"
+    }
+    if(new[j, "ID"] == "SM"){
+      new[j, "ID"] <- "SA-Mod"
+    }
+    if(new[j, "ID"] == "SG"){
+      new[j, "ID"] <- "SAGAS"
+    }
+    if(new[j, "ID"] == "GR"){
+      new[j, "ID"] <- "Greedy"
+    }
+  }
+  
+  print(new)
+  
+  g <- ggplot(new, aes(factor(ID), Result_Time) ) + 
+  geom_boxplot(outlier.shape = NA, coef = 10000)+
+  geom_beeswarm(size = 1.5, cex = 3, alpha = 0.9 )+
+  scale_x_discrete(limits = c("SA", "SA-Mod", "Greedy", "SAGAS"))+
+  theme_classic() + 
+  theme(
+     axis.ticks = element_line(colour = "black"),
+      axis.text.x = element_text(
+    size = 10, 
+    colour = "black"
+  ),
+  axis.text.y = element_text(
+    size = 8,
+    colour = "black"
+    
+  ),
+  axis.title = element_text(
+    size = 10, 
+    colour = "black"
+  ),
+  plot.title = element_text(
+    
+    size = 12, 
+    colour = "black",
+    hjust = 0.5
+    
+  ),
+  axis.title.x = element_blank(),
+    panel.border = element_rect(color = "black",
+                                      fill = NA,
+                                      size = 1),
+  panel.grid.major.y = element_line(colour = "grey")
+  ) +
+  labs(title = Title, x = "Algorithms", y = "Execution time (min)") +
+  scale_y_continuous(limits=c(0,Upper),expand=c(0,0))
+  
+  plot(g)
+  
+  
+  if(grepl(pattern = "1500msec", results_GR[i])){
+  Output_directory <- gsub("/RESULTS/.*", "/Sums/1500msec/pdfs/", results_GR[i])
+  print(Output_directory)
+  
+  
+  ggsave(filename = paste0(Output_directory,gsub("\n", "", Title), "_execution.pdf"), plot = g, width = pt_inch(230), height = pt_inch(120))
+  ggsave(filename = paste0(Output_directory,gsub("\n", "", Title), "_execution.svg"), plot = g, width = pt_inch(230), height = pt_inch(120))
+  }
+  
+  else {
+  Output_directory <- gsub("/RESULTS/.*", "/Sums/3min/pdfs/", results_GR[i])
+  print(Output_directory)
+  
+  ggsave(filename = paste0(Output_directory,gsub("\n", "", Title), "_execution.pdf"), plot = g, width = pt_inch(230), height = pt_inch(120))
+  ggsave(filename = paste0(Output_directory,gsub("\n", "", Title), "_execution.svg"), plot = g, width = pt_inch(230), height = pt_inch(120))
+  
+  
+  if(grepl(pattern = "1500msec", results_GR[i])){
+    Figpath <- "F2"
+  }  
+  
+  else if(grepl(pattern = "qPCR_RNAseq", results_GR[i])){
+    Figpath <- "F6"
+  }  
+  
+  else if(grepl(pattern = "Gu2016", results_GR[i])){
+    Figpath <- "F3"
+  }  
+  
+  else if(grepl(pattern = "RNAseq", results_GR[i])){
+    Figpath <- "F5"
+  }  
+  
+  else if(grepl(pattern = "qPCR", results_GR[i])){
+    Figpath <- "F4"
+    
+  }  
+  
+  if(grepl(pattern = "1500msec", results_GR[i])){
+    ggsave(filename = paste0(gsub("/Sums/.*","/RESULTS/scheduling/P/", Output_directory), Figpath,"/", gsub("\n", "", Title), "_execution.svg"), plot = g, width = W, height = H)
+  }
+  if(grepl(pattern = "N5", results_GR[i])){
+    ggsave(filename = paste0(gsub("/Sums/.*","/RESULTS/scheduling/P/", Output_directory), Figpath,"/", gsub("\n", "", Title), "_execution.svg"), plot = g, width = W, height = H)
+  }
+  
+  }
+  
+  write.table(x = bound,file = paste0(Output_directory,gsub("\n", "", Title), "_Rawresults_sum.tsv"),sep = "\t",row.names=FALSE,col.names=TRUE)
+  
+  
+
+
+  
+}
+
+
+  write.table(x = Allbound,file = "/Users/yuyaarai/Documents/LocalSAGAS/20220516/SALAS_2/Sums/3min/pdfs/All_Rawresults_sum.tsv",sep = "\t",row.names=FALSE,col.names=TRUE)
+  
+  Allbound_sum <- Allbound %>%
+    group_by(ID)%>%
+    filter(Result_statas != "FAILED")%>%
+    summarise_each(funs(max,min, mean, sd), Result_Time)
+  
+    
+  write.table(x = Allbound_sum,file = "/Users/yuyaarai/Documents/LocalSAGAS/20220516/SALAS_2/Sums/3min/pdfs/All_ResultTime_sum.tsv",sep = "\t",row.names=FALSE,col.names=TRUE)
+  
+    
+
+```
+
+```{r Schedulingtime_sum}
+
+
+#for (i in seq(length(results_GR))){
+
+Scheduling_time_tsv <- "/Users/yuyaarai/Desktop/b/a.tsv"
+
+default_column <-paste("ID", "min", "mean", "median", "max", sep = "\t")
+
+del_make_file(Scheduling_time_tsv)
+
+df_all <- read_tsv(results_GR[1])
+
+
+    
+    df_all <- df_all %>% 
+      group_by(ID) %>% 
+      summarize(n = n(), 
+                min = min(Scheduling_time_msec),
+                Q25 = quantile(Scheduling_time_msec, 0.25),
+                median = median(Scheduling_time_msec),
+                Q75 = quantile(Scheduling_time_msec, 0.75),
+                max = max(Scheduling_time_msec),
+                mean = mean(Scheduling_time_msec),
+                sd = sd(Scheduling_time_msec))
+    
+    df_all
+  
+
+for (i in seq(length(results_GR))){
+#for (i in seq(1)){
+  new <- c(results_GR[i], results_SA[i], results_SG[i], results_SM[i])
+  
+  
+  for (j in seq(4)){
+    
+    df <- read_tsv(new[j])
+    
+    df_ <- df %>% 
+      group_by(ID) %>% 
+      summarize(n = n(), 
+                min = min(Scheduling_time_msec),
+                Q25 = quantile(Scheduling_time_msec, 0.25),
+                median = median(Scheduling_time_msec),
+                Q75 = quantile(Scheduling_time_msec, 0.75),
+                max = max(Scheduling_time_msec),
+                mean = mean(Scheduling_time_msec),
+                sd = sd(Scheduling_time_msec))
+    
+    df_
+    
+    
+  if(i == 1 & j == 1){
+    df_all <- df_
+    
+  }
+  else{
+    df_all <- rbind(df_all, df_)
+  }
+    
+    
+    
+    
+    
+  }
+  
+  
+  
+}
+
+write.table(df_all,Scheduling_time_tsv,sep = "\t",na = "NA",row.names=FALSE,col.names=TRUE, quote=FALSE, append = FALSE)
+df_all
+
+```
+
+```{r Results_sum}
+
+
+#for (i in seq(length(results_GR))){
+
+Results_time_tsv <- "/Users/yuyaarai/Desktop/b/b.tsv"
+
+default_column <-paste("ID", "min", "mean", "median", "max", sep = "\t")
+
+del_make_file(Results_time_tsv)
+
+df_all <- read_tsv(results_GR[1])
+
+
+    
+    df_all <- df_all %>% 
+      group_by(ID) %>% 
+      summarize(n_all = 5, 
+                n_suceeded = 0, 
+                min = "NA",
+                Q25 = "NA",
+                median = "NA",
+                Q75 = "NA",
+                max = "NA",
+                mean = "NA",
+                sd = "NA",)
+    
+    df_all
+  
+
+for (i in seq(length(results_GR))){
+#for (i in seq(1)){
+  new <- c(results_GR[i], results_SA[i], results_SG[i], results_SM[i])
+  
+  
+  for (j in seq(4)){
+    
+    df <- read_tsv(new[j])
+    
+    n_all <- nrow(df)
+    
+    n_all
+    
+    df_f <- filter(df, Result_statas != "FAILED")
+    
+    n<-nrow(df_f)
+    
+    n
+    
+    print(n)
+    
+    
+    
+    if(n != 0) {
+      df <- df_f
+      
+    df_ <- df %>% 
+      group_by(ID) %>% 
+      summarize(n_all = n_all, 
+                n_suceeded = n, 
+                min = min(Result_Time),
+                Q25 = quantile(Result_Time, 0.25),
+                median = median(Result_Time),
+                Q75 = quantile(Result_Time, 0.75),
+                max = max(Result_Time),
+                mean = mean(Result_Time),
+                sd = sd(Result_Time))
+    }
+    else{
+      
+    df_ <- df %>% 
+      group_by(ID) %>% 
+      summarize(n_all = n_all, 
+                n_suceeded = n, 
+                min = NA,
+                Q25 = NA,
+                median = NA,
+                Q75 = NA,
+                max = NA,
+                mean = NA,
+                sd = NA,)
+    }
+    
+    df_
+    
+    
+  if(i == 1 & j == 1){
+    df_all <- df_
+    
+  }
+  else{
+    df_all <- rbind(df_all, df_)
+  }
+    
+    
+    
+    
+    
+  }
+  
+  
+  
+}
+
+write.table(df_all,Results_time_tsv,sep = "\t",na = "NA",row.names=FALSE,col.names=TRUE, quote=FALSE, append = FALSE)
+head(df_all)
+
+```
+
+
+
+```{r Results_}
+
+
+Text_Base <- 4
+Fig_Base <- 3
+
+
+
+for (i in seq(length(results_GR))){
+#for (i in seq(1)){
+  GR <- read_tsv(results_GR[i])
+  SA <- read_tsv(results_SA[i])
+  SG <- read_tsv(results_SG[i])
+  SM <- read_tsv(results_SM[i])
+  new <- rbind(GR, SA, SG, SM)
+  Upper <- max(select(new, Scheduling_time_sec))
+  Upper <- round(Upper*1.5)
+  Title <- substr(GR[1, "ID"],1, str_length(GR[1, "ID"]) - 3)
+  Title <- gsub("_", " ", Title)
+  Title <- gsub("min", " min", Title)
+  ylab = "Computational time (s)"
+    if(grepl(pattern = "1500msec", results_GR[i])){
+  Upper <- max(select(new, Scheduling_time_msec))
+  Upper <- round(Upper*1.5)
+  
+  new$Scheduling_time_sec <- new$Scheduling_time_msec
+  ylab = "Computational time (ms)"
+  }
+  
+  
+  print(new)
+  
+    for (j in seq(length(new$ID))){
+    #print(new[j, "ID"])
+    new[j, "ID"] <- gsub(".*_", "", new[j, "ID"])
+    #print(new[j, "ID"])
+    }
+  
+  for (j in seq(length(new$ID))){
+    if(new[j, "ID"] == "SA"){
+      new[j, "ID"] <- "SA"
+    }
+    if(new[j, "ID"] == "SM"){
+      new[j, "ID"] <- "SA-Mod"
+    }
+    if(new[j, "ID"] == "SG"){
+      new[j, "ID"] <- "SAGAS"
+    }
+    if(new[j, "ID"] == "GR"){
+      new[j, "ID"] <- "Greedy"
+    }
+  }
+  
+  g <- ggplot(new, aes(factor(ID), Scheduling_time_sec) ) + 
+  geom_bar(stat = "summary") +
+  geom_beeswarm(size = 1.5, cex = 3, alpha = 0.9 )+
+  scale_x_discrete(limits = c("SA", "SA-Mod", "Greedy", "SAGAS"))+
+  labs(title = Title, x = "Algorithms", y = "Computation time (s)")+
+  theme_classic() + 
+  theme(
+    
+      axis.ticks = element_line(colour = "black"),
+      axis.text.x = element_text(
+    size = 10, 
+    colour = "black"
+  ),
+  axis.text.y = element_text(
+    size = 8,
+    colour = "black"
+    
+  ),
+  axis.title = element_text(
+    size = 10, 
+    colour = "black"
+  ),
+  plot.title = element_text(
+    
+    size = 12, 
+    colour = "black",
+    hjust = 0.5
+    
+  ),
+  axis.title.x = element_blank(),
+          panel.border = element_rect(colour = "black",
+                                      fill = NA,
+                                      size = 1),
+  panel.grid.major.y = element_line(colour = "gray")
+  
+  
+  ) +
+  expand_limits(y = 0) + 
+  scale_y_continuous(limits=c(0,Upper),expand=c(0,0))
+  
+  plot(g)
+  
+   
+  if(grepl(pattern = "1500msec", results_GR[i])){
+  Output_directory <- gsub("/RESULTS/.*", "/Sums/1500msec/pdfs/", results_GR[i])
+  print(Output_directory)
+  
+  ggsave(filename = paste0(Output_directory,Title, "_Computation.pdf"), plot = g, width = pt_inch(230), height = pt_inch(120))
+  ggsave(filename = paste0(Output_directory,Title, "_Computation.svg"), plot = g, width = pt_inch(230), height = pt_inch(120))
+  
+  
+  bound_sum <- SG %>%
+    summarise_each(funs(min, max), Scheduling_time_msec)
+  
+  #bound_sum <- as.data.frame(bound_sum)
+  
+  bound_sum <- mutate(bound_sum, min_per180 = min / 1500)
+  bound_sum <- mutate(bound_sum, max_per180 = max / 1500)
+  
+  bound_sum
+  
+  write.table(x = bound_sum,file = paste0(Output_directory,Title, "_SchedulingTimemsec_of_SG_per1500.tsv"),sep = "\t",row.names=FALSE,col.names=TRUE)
+  
+  }
+  
+  else{
+  Output_directory <- gsub("/RESULTS/.*", "/Sums/3min/pdfs/", results_GR[i])
+  print(Output_directory)
+  
+  ggsave(filename = paste0(Output_directory,Title, "_Computation.pdf"), plot = g, width = pt_inch(230), height = pt_inch(120))
+  ggsave(filename = paste0(Output_directory,Title, "_Computation.svg"), plot = g, width = pt_inch(230), height = pt_inch(120))
+  
+  
+  
+  bound_sum <- SG %>%
+    summarise_each(funs(min, max), Scheduling_time_sec)
+  
+  #bound_sum <- as.data.frame(bound_sum)
+  
+  bound_sum <- mutate(bound_sum, min_per180 = min / 180)
+  bound_sum <- mutate(bound_sum, max_per180 = max / 180)
+  
+  bound_sum
+  
+  write.table(x = bound_sum,file = paste0(Output_directory,Title, "_SchedulingTimesec_of_SG_per180.tsv"),sep = "\t",row.names=FALSE,col.names=TRUE)
+  
+  }
+  
+    
+  if(grepl(pattern = "1500msec", results_GR[i])){
+    Figpath <- "F2"
+  }  
+  
+  else if(grepl(pattern = "qPCR_RNAseq", results_GR[i])){
+    Figpath <- "F6"
+  }  
+  
+  else if(grepl(pattern = "Gu2016", results_GR[i])){
+    Figpath <- "F3"
+  }  
+  
+  else if(grepl(pattern = "RNAseq", results_GR[i])){
+    Figpath <- "F5"
+  }  
+  
+  else if(grepl(pattern = "qPCR", results_GR[i])){
+    Figpath <- "F4"
+    
+  }  
+  
+  if(grepl(pattern = "1500msec", results_GR[i])){
+    ggsave(filename = paste0(gsub("/Sums/.*","/RESULTS/scheduling/P/", Output_directory), Figpath,"/", gsub("\n", "", Title), "_Computation.svg"), plot = g, width = W, height = H)
+  }
+  if(grepl(pattern = "N5", results_GR[i])){
+    ggsave(filename = paste0(gsub("/Sums/.*","/RESULTS/scheduling/P/", Output_directory), Figpath,"/", gsub("\n", "", Title), "_Computation.svg"), plot = g, width = W, height = H)
+  }
+  
+  
+ 
+  
+
+
+
+  
+}
+
+```
+
+Summarise all of the computation times.
+
+```{r Computation_times_1}
+
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+ return(data_sum)
+}
+
+
+Text_Base <- 4
+Fig_Base <- 3
+
+
+
+for (i in seq(length(results_GR))){
+#for (i in seq(1)){
+  GR <- read_tsv(results_GR[i])
+  SA <- read_tsv(results_SA[i])
+  SG <- read_tsv(results_SG[i])
+  SM <- read_tsv(results_SM[i])
+  
+  
+  if(grepl(pattern = "1500msec", results_GR[i])){  
+  new <- rbind(GR, SA, SG, SM)
+  Upper <- max(select(new, Scheduling_time_msec))
+  Upper <- round(Upper*1.1)
+  Title <- substr(GR[1, "ID"],1, str_length(GR[1, "ID"]) - 3)
+  
+  
+  df_G <- new %>%
+    group_by(ID) %>%
+    summarise_each(funs(max , min ,mean, sd) , Scheduling_time_msec)
+    
+  print(df_G)
+  
+  
+    
+    for (j in seq(length(new$ID))){
+    #print(new[j, "ID"])
+    new[j, "ID"] <- gsub(".*_", "", new[j, "ID"])
+    #print(new[j, "ID"])
+    }
+  
+  df2 <- data_summary(new, varname="Scheduling_time_msec", 
+                    groupnames="ID")
+# Convert dose to a factor variable
+df2$ID=as.factor(df2$ID)
+print(head(df2))
+  
+  g <- ggplot(df2, aes(x=ID, y=Scheduling_time_msec)) + 
+  geom_bar(stat="identity", color="black", position=position_dodge()) +
+  geom_errorbar(aes(ymin=Scheduling_time_msec, ymax=Scheduling_time_msec+sd), width=.2,
+                 position=position_dodge(.9), colour = "black") + 
+    theme_classic()+
+    theme(
+    plot.title = element_text(hjust = 0.5, size = 3*Text_Base), 
+    axis.text.x = element_text(size = 3*Text_Base), 
+    axis.text.y = element_text(size = 3*Text_Base), 
+    axis.title.x = element_text(size = 3*Text_Base), 
+    axis.title.y = element_text(size = 3*Text_Base), 
+  panel.grid.major.y = element_line(colour = "black")
+  
+  
+  ) +
+  expand_limits(y = 0) + 
+  labs(title = Title, x = "Algorithms", y = "Computational time (ms)")+
+  scale_y_continuous(limits=c(0,Upper),expand=c(0,0))
+  
+  plot(g)
+  
+    
+
+  Output_directory <- gsub("/RESULTS/.*", "/Sums/1500msec/pdfs/", results_GR[i])
+  print(Output_directory)
+  
+  
+  ggsave(filename = paste0(Output_directory,Title, "_computationwithEbar.pdf"), plot = g, width = pt_inch(192)*Fig_Base, height = pt_inch(71.5)*Fig_Base)
+  ggsave(filename = paste0(Output_directory,Title, "_computationwithEbar.svg"), plot = g, width = pt_inch(192)*Fig_Base, height = pt_inch(71.5)*Fig_Base)
+  }
+  
+  else {
+    
+    
+  new <- rbind(GR, SA, SG, SM)
+  Upper <- max(select(new, Scheduling_time_sec))
+  Upper <- round(Upper*1.1)
+  Title <- substr(GR[1, "ID"],1, str_length(GR[1, "ID"]) - 3)
+      
+  df_G <- new %>%
+    group_by(ID) %>%
+    summarise_each(funs(max , min ,mean, sd) , Scheduling_time_sec)
+    
+  print(df_G)
+  
+  
+    
+    for (j in seq(length(new$ID))){
+    #print(new[j, "ID"])
+    new[j, "ID"] <- gsub(".*_", "", new[j, "ID"])
+    #print(new[j, "ID"])
+    }
+  
+  df2 <- data_summary(new, varname="Scheduling_time_sec", 
+                    groupnames="ID")
+# Convert dose to a factor variable
+df2$ID=as.factor(df2$ID)
+print(head(df2))
+  
+  g <- ggplot(df2, aes(x=ID, y=Scheduling_time_sec)) + 
+  geom_bar(stat="identity", color="black", position=position_dodge()) +
+  geom_errorbar(aes(ymin=Scheduling_time_sec, ymax=Scheduling_time_sec+sd), width=.2,
+                 position=position_dodge(.9), colour = "black") + 
+    theme_classic()+
+    theme(
+    plot.title = element_text(hjust = 0.5, size = 3*Text_Base), 
+    axis.text.x = element_text(size = 3*Text_Base), 
+    axis.text.y = element_text(size = 3*Text_Base), 
+    axis.title.x = element_text(size = 3*Text_Base), 
+    axis.title.y = element_text(size = 3*Text_Base), 
+  panel.grid.major.y = element_line(colour = "black")
+  
+  
+  ) +
+  expand_limits(y = 0) + 
+  labs(title = Title, x = "Algorithms", y = "Computational time (s)")+
+  scale_y_continuous(limits=c(0,Upper),expand=c(0,0))
+  
+  plot(g)
+  
+    
+  Output_directory <- gsub("/RESULTS/.*", "/Sums/3min/pdfs/", results_GR[i])
+  print(Output_directory)
+  
+  ggsave(filename = paste0(Output_directory,Title, "_computationwithEbar.pdf"), plot = g, width = pt_inch(192)*Fig_Base, height = pt_inch(71.5)*Fig_Base)
+  ggsave(filename = paste0(Output_directory,Title, "_computationwithEbar.svg"), plot = g, width = pt_inch(192)*Fig_Base, height = pt_inch(71.5)*Fig_Base)
+  }
+  
+  write.table(x = df_G,file = paste0(Output_directory,Title, "_results_computation_sum.tsv"),sep = "\t",row.names=FALSE,col.names=TRUE)
+  
+  
+}
+
+```
+
+```{r Computation_times_2}
+
+
+
+Text_Base <- 4
+Fig_Base <- 3
+
+
+
+for (i in seq(length(results_GR))){
+#for (i in seq(1)){
+  GR <- read_tsv(results_GR[i])
+  SA <- read_tsv(results_SA[i])
+  SG <- read_tsv(results_SG[i])
+  SM <- read_tsv(results_SM[i])
+  new <- rbind(GR, SA, SG, SM)
+  Upper <- max(select(new, Scheduling_time_sec))
+  Upper <- round(Upper*1.1)
+  Title <- substr(GR[1, "ID"],1, str_length(GR[1, "ID"]) - 3)
+  
+  
+  
+  df_G <- new %>%
+    group_by(ID) %>%
+    summarise_each(funs(max , min ,mean, sd) , Scheduling_time_sec)
+    
+  print(df_G)
+  
+  
+    
+    for (j in seq(length(new$ID))){
+    #print(new[j, "ID"])
+    new[j, "ID"] <- gsub(".*_", "", new[j, "ID"])
+    #print(new[j, "ID"])
+    }
+  new$ID = as.factor(new$ID)
+ p <- ggplot(new, aes(x=ID, y=Scheduling_time_sec)) + 
+    geom_dotplot(binaxis='y', stackdir='center')
+ g <- p + stat_summary(fun.data="mean_sdl", fun.args = list(mult=1), 
+        geom="errorbar", color="red", width=0.2) +
+  stat_summary(fun.y=mean, geom="point", color="red")
+ plot(g)
+ 
+ 
+ 
+  
+}
+
+```
