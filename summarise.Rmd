@@ -55,7 +55,7 @@ del_make_file <- function(x){
   
 }
 
-path <- "/Users/yuyaarai/Documents/LocalSAGAS/20220516/SALAS_2/RESULTS/scheduling"
+path <- "PATH/TO"
 results <- list.files(path, pattern = "test_result.*tsv", recursive = T, full.names = T)
 
 
