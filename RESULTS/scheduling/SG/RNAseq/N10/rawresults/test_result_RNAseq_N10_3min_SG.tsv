@@ -1,6 +1,0 @@
-DATE(GMT): YYYY/ MM/ DD/ hh/ mm/ ss	ID	Loop_number	Set_number	Machine1	Machine2	Machine3	Machine4	Used_Machine1	Used_Machine2	Used_Machine3	Used_Machine4	Result_Time	Annealing_time_msec	Scheduling_time_sec	Scheduling_time_msec	Best_step	Last_step	Result_statas
-2022_05_18_12_37_46	RNAseq_N10_3min_SG	0	0	2	4	2	10	2	4	2	4	2659	180000	269	269790	0	519347	GREED
-2022_05_18_12_42_21	RNAseq_N10_3min_SG	1	0	2	4	2	10	2	4	2	4	2659	180000	275	274723	0	494918	GREED
-2022_05_18_12_46_57	RNAseq_N10_3min_SG	2	0	2	4	2	10	2	4	2	4	2659	180000	276	276052	0	490173	GREED
-2022_05_18_12_51_02	RNAseq_N10_3min_SG	3	0	2	4	2	10	2	4	2	4	2659	180000	245	244317	0	626670	GREED
-2022_05_18_12_55_04	RNAseq_N10_3min_SG	4	0	2	4	2	10	2	4	2	4	2659	180000	242	242538	0	742717	GREED
