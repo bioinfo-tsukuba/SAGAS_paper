@@ -1,0 +1,6 @@
+DATE(GMT): YYYY/ MM/ DD/ hh/ mm/ ss	ID	Loop_number	Set_number	Machine1	Machine2	Machine3	Machine4	Used_Machine1	Used_Machine2	Used_Machine3	Used_Machine4	Result_Time	Annealing_time_msec	Scheduling_time_sec	Scheduling_time_msec	Best_step	Last_step	Result_statas
+2022_05_18_13_08_14	RNAseq_N5_3min_SG	0	0	2	4	2	10	2	4	2	4	1123	180000	193	192770	1572278	1573648	SA
+2022_05_18_13_11_32	RNAseq_N5_3min_SG	1	0	2	4	2	10	2	4	2	5	1122	180000	198	198242	1588409	1588921	SA
+2022_05_18_13_14_51	RNAseq_N5_3min_SG	2	0	2	4	2	10	2	3	2	4	1153	180000	199	198640	1592972	1594086	SA
+2022_05_18_13_18_11	RNAseq_N5_3min_SG	3	0	2	4	2	10	2	3	2	4	1090	180000	200	200408	1590334	1592058	SA
+2022_05_18_13_21_37	RNAseq_N5_3min_SG	4	0	2	4	2	10	2	2	2	3	1103	180000	206	205969	1593294	1594410	SA
